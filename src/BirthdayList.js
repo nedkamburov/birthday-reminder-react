@@ -1,17 +1,21 @@
 import React from 'react'
-import video from './sludge-sm.mp4';
+
 
 class BirthdayList extends React.Component {
-  state = {
-    isLoading: true,
-    users: [],
-    err: null,
-    numBirthdays: null,
+  constructor(props) {
+    super(props)
+    this.state = {
+      isLoading: true,
+      users: [],
+      err: null,
+      numBirthdays: null,
+      setDisplayBirthdays: this.props.setDisplayBirthdays
+    }
   }
 
-  componentDidMount() {
-    const numUsers = (new Date().getUTCHours() % 5) + 1;
 
+  componentDidMount() {
+    const numUsers = (new Date().getUTCHours() % 5) + 1; // a hack to be more interesting
     fetch(`https://randomuser.me/api/?results=${numUsers}`,
       {
         crossDomain: true,
@@ -40,41 +44,30 @@ class BirthdayList extends React.Component {
         users: [],
         numBirthdays: null
       })
+      this.state.setDisplayBirthdays(false);
     }
-    return (
-      <React.Fragment>
-        <React.Fragment>
-          {!isLoading ? (
-            <video muted autoPlay src={video} className='video'> </video>
 
-          ) : null
-          }
-        </React.Fragment>
-        <section className='container'>
-          <h1> {!numBirthdays ? null : numBirthdays} Birthdays Today</h1>
-          {err ? <p>{err.message}</p> : null}
-          {
-            !isLoading ? (
-              users.map(user => {
-                const { name, dob, id, picture } = user;
-                return (
-                  <article className='user' key={id.value}>
-                    <img src={picture.large} alt={"picture of" + name.first} />
-                    <div className="details">
-                      <h2>{`${name.first} ${name.last}`}</h2>
-                      <h4>{dob.age} Years Old</h4>
-                    </div>
-                  </article>
-                );
-              })
-            ) : (
-                <h3>Loading...</h3>
-              )
-          }
-          < button className='clear' type='button' onClick={clearUsers}>Clear All</button>
-        </section >
-      </React.Fragment>
-    )
+    return (
+      <article className="birthdayCard" style={this.props.style}>
+        { numBirthdays && isLoading ? <h1>Loading Birthdays Today</h1> : numBirthdays ? <h1>{numBirthdays} Birthdays Today</h1> : !isLoading ? <h1> No More Birthdays Today</h1> : <h1>Loading Birthdays Today</h1>}
+        { err ? <p>{err.message}</p> : null}
+        {
+          !isLoading ? (
+            users.map((user, index) => {
+              const { name, dob, login, picture } = user;
+              return (
+                <article className='user' key={login.uuid}>
+                  <img src={picture.large} alt={"picture of" + name.first} />
+                  <div className="details">
+                    <h2>{`${name.first} ${name.last}`}</h2>
+                    <h4>{dob.age} Years Old</h4>
+                  </div>
+                </article>
+              );
+            })) : (<h3>Loading...</h3>)
+        }
+        { numBirthdays && <button className='clear' type='button' onClick={clearUsers}>Clear All</button>}
+      </article >)
   }
 }
 export default BirthdayList
